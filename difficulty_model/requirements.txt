@@ -1,0 +1,17 @@
+# Core NLP + ML
+spacy
+scikit-learn
+numpy
+
+# Web API (for when you turn it into a microservice)
+fastapi
+uvicorn[standard]
+
+# Spanish model (spaCy pipeline)
+es_core_news_md @ https://github.com/explosion/spacy-models/releases/download/es_core_news_md-3.7.0/es_core_news_md-3.7.0-py3-none-any.whl  # [web:69][web:81]
+
+# Dataset loading (UniversalCEFR from Hugging Face)
+datasets
+
+huggingface_hub
+
