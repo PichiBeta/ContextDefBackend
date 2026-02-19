@@ -2,6 +2,9 @@
 spacy
 scikit-learn
 numpy
+torch
+transformers
+accelerate>=1.1.0
 
 # Web API (for when you turn it into a microservice)
 fastapi
