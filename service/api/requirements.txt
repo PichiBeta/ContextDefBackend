@@ -1,0 +1,12 @@
+# API
+fastapi
+uvicorn[standard]
+
+# Model loading
+huggingface_hub
+joblib
+scikit-learn
+numpy
+
+# Env variables
+python-dotenv

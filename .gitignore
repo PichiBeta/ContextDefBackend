@@ -1,0 +1,4 @@
+venv
+*.pyc
+difficulty_model/best_model/beto/*
+.env

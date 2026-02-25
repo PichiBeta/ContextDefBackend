@@ -20,6 +20,11 @@ log = logging.getLogger(__name__)
 
 LABEL_MAP = {"A1":0, "A2":1, "B1":2, "B2":3, "C1":4, "C2":5}
 
+HF_TOKEN = os.getenv("HF_TOKEN")
+REPO = "pichibeta/difficulty_prediction_SPA"
+
+tokenizer = AutoTokenizer.from_pretrained(REPO, token=HF_TOKEN)
+model = AutoModelForSequenceClassification.from_pretrained(REPO, token=HF_TOKEN)
 
 def load_tabular(path, text_col="text", label_col="label"):
     path = os.fspath(path)
@@ -54,6 +59,9 @@ def load_tabular(path, text_col="text", label_col="label"):
                     raise ValueError(f"Unknown label value: {l}")
         else:
             labels.append(int(l))
+    from collections import Counter
+    dist = Counter(labels)
+    print({k: dist[k] for k in sorted(dist)})
     return texts, labels
 
 
@@ -103,6 +111,7 @@ def text_to_score(model, tokenizer, text, device=None, max_length=512):
     with torch.no_grad():
         outputs = model(**inputs)
         probs = F.softmax(outputs.logits, dim=-1).squeeze(0)
+    print(probs)
     score_map = torch.tensor([0, 20, 40, 60, 80, 100], dtype=probs.dtype, device=probs.device)
     difficulty_score = (probs * score_map).sum().item()
     return difficulty_score
@@ -117,7 +126,7 @@ def main():
     # Config
     # -------------------------------
     MODEL_NAME = "dccuchile/bert-base-spanish-wwm-cased"
-    OUTPUT_DIR = "./best_model"
+    OUTPUT_DIR = "./best_model/beto"
     EPOCHS = 4
     BATCH_SIZE = 8
     MAX_LENGTH = 512
@@ -205,4 +214,9 @@ def main():
     log.info("Sample difficulty score: %.2f", score)
 
 if __name__ == "__main__":
-    main()
+    ml_model = {}
+    REPO = "pichibeta/difficulty_prediction_SPA"
+    token = os.getenv("HF_TOKEN")
+    tokenizer = AutoTokenizer.from_pretrained(REPO, token=token)
+    model = AutoModelForSequenceClassification.from_pretrained(REPO, token=token)
+    print(text_to_score(model, tokenizer, "La fenomenología de Heidegger postula una ontología fundamental."))
