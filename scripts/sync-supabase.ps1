@@ -6,7 +6,7 @@ param(
     [switch]$SkipFunctionsDownload,
     [switch]$SyncSecretsTemplate,
     [switch]$WriteLocalEnvFromHost,
-    [string]$TemplateOutputPath = "supabase\.env.sync.example",
+    [string]$TemplateOutputPath = "supabase\.env.example",
     [string]$EnvOutputPath = "supabase\.env.local"
 )
 
@@ -69,8 +69,8 @@ function Get-VaultSecretNamesFromMigrations {
     }
 
     $names = @()
-    $matches = Select-String -Path ($files.FullName) -Pattern "where name = '([^']+)'" -AllMatches
-    foreach ($m in $matches) {
+    $matchResults = Select-String -Path ($files.FullName) -Pattern "where name = '([^']+)'" -AllMatches
+    foreach ($m in $matchResults) {
         foreach ($capture in $m.Matches) {
             $value = $capture.Groups[1].Value
             if (-not [string]::IsNullOrWhiteSpace($value)) {
@@ -162,6 +162,40 @@ if (-not $SkipDbPull) {
 
 if (-not $SkipFunctionsDownload) {
     Invoke-SupabaseCommand -Label "Downloading remote edge functions" -CommandArgs (@("functions", "download", "--use-api") + $projectArgs)
+
+    # Check per-function config gaps: verify_jwt and import_map settings should be
+    # reflected in [functions.<name>] sections of supabase/config.toml.
+    # supabase functions download only pulls source code, NOT these settings.
+    Write-Host ""
+    Write-Host "==> Checking per-function config gaps" -ForegroundColor Cyan
+    $functionsJsonRaw = & supabase @((@("functions", "list", "--output", "json") + $projectArgs))
+    if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace(($functionsJsonRaw -join ""))) {
+        $remoteFunctions = $functionsJsonRaw | ConvertFrom-Json
+        $configContent = Get-Content "supabase\config.toml" -Raw -ErrorAction SilentlyContinue
+
+        $missingConfig = @()
+        foreach ($fn in $remoteFunctions) {
+            $fnName = $fn.slug
+            if ($null -eq $fnName) { continue }
+            # Check if config.toml has a [functions.<name>] section
+            if ($configContent -notmatch "\[functions\.$([regex]::Escape($fnName))\]") {
+                $missingConfig += $fnName
+            }
+        }
+
+        if ($missingConfig.Count -gt 0) {
+            Write-Warning "The following deployed functions are missing [functions.<name>] sections in supabase/config.toml:"
+            foreach ($name in $missingConfig) {
+                Write-Host "  - $name" -ForegroundColor Yellow
+            }
+            Write-Host "  Add [functions.<name>] sections manually with verify_jwt and other settings." -ForegroundColor Yellow
+            Write-Host "  Run: supabase functions list --output json  to inspect remote settings." -ForegroundColor Yellow
+        } else {
+            Write-Host "  All deployed functions have [functions.<name>] entries in config.toml." -ForegroundColor Green
+        }
+    } else {
+        Write-Warning "Could not fetch function list to check config gaps. Run: supabase functions list --output json"
+    }
 }
 
 $latestMigration = Get-ChildItem "supabase\migrations\*.sql" -ErrorAction SilentlyContinue |

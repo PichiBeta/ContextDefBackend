@@ -358,8 +358,48 @@ enabled = true
 policy = "per_worker"
 # Port to attach the Chrome inspector for debugging edge functions.
 inspector_port = 8083
-# The Deno major version to use.
+# The Deno major version to use. Do NOT change — functions require Deno 2.
 deno_version = 2
+
+# Per-function configuration. All functions use verify_jwt = false and handle
+# auth internally (webhook secret, JWT parsing, or no auth as appropriate).
+# Run `supabase functions list --output json` to verify these match the dashboard.
+
+[functions.process-reading]
+enabled = true
+verify_jwt = false
+import_map = "./functions/process-reading/deno.json"
+entrypoint = "./functions/process-reading/index.ts"
+
+[functions.create-reading]
+enabled = true
+verify_jwt = false
+import_map = "./functions/create-reading/deno.json"
+entrypoint = "./functions/create-reading/index.ts"
+
+[functions.calculate-difficulty]
+enabled = true
+verify_jwt = false
+import_map = "./functions/calculate-difficulty/deno.json"
+entrypoint = "./functions/calculate-difficulty/index.ts"
+
+[functions.ocr-extract]
+enabled = true
+verify_jwt = false
+import_map = "./functions/ocr-extract/deno.json"
+entrypoint = "./functions/ocr-extract/index.ts"
+
+[functions.defintion-translation]
+enabled = true
+verify_jwt = false
+import_map = "./functions/defintion-translation/deno.json"
+entrypoint = "./functions/defintion-translation/index.ts"
+
+[functions.calculate_user_embedding]
+enabled = true
+verify_jwt = false
+import_map = "./functions/calculate_user_embedding/deno.json"
+entrypoint = "./functions/calculate_user_embedding/index.ts"
 
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
