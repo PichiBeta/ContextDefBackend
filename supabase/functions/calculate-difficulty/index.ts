@@ -1,5 +1,5 @@
 import "@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "supabase";
 
 /*
 v1.0 (updated) - Classic readability: single scalar difficulty score derived
@@ -147,7 +147,9 @@ Deno.serve(async (req) => {
           })
           .eq("id", body.reading_id);
       }
-    } catch (_) {}
+    } catch (_) {
+      // Ignore any errors here - we're already handling a failure case
+    }
 
     return new Response(
       JSON.stringify({

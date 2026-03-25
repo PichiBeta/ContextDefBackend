@@ -48,7 +48,7 @@ async function pollAzure(operationUrl: string) {
   }
 }
 
-function normalizeParagraphs(paragraphs: any[]) {
+function normalizeParagraphs(paragraphs: { content: string }[]) {
   return paragraphs
     .map((p) => p.content.replace(/\s+/g, " ").trim())
     .filter((p) => p.length > 0)
@@ -180,7 +180,7 @@ Deno.serve(async (req) => {
       },
     );
   } catch (e) {
-    return json(500, { error: "OCR failed", detail: String(e?.message ?? e) });
+    return json(500, { error: "OCR failed", detail: String((e as Error)?.message ?? e) });
   }
 
   const finalText = texts.filter((t) => t.length > 0).join("\n\n");

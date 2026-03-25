@@ -1,4 +1,4 @@
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "supabase";
 
 
  // We explicitly require a Bearer access token and verify it via auth.getUser().

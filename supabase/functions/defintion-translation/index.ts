@@ -1,5 +1,5 @@
-import Anthropic from "npm:@anthropic-ai/sdk@0.39.0";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import Anthropic from "anthropic";
+import { createClient } from "supabase";
 import { getPrompt } from "./prompts.ts";
 
 const corsHeaders = {
