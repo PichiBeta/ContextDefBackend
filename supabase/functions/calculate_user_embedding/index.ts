@@ -1,7 +1,13 @@
 // supabase/functions/update-user-embedding/index.ts
 import { createClient } from "supabase";
+import { requireWebhookSecret } from "../_shared/auth.ts";
+
+const WEBHOOK_SECRET = Deno.env.get("READINGS_DIFFICULTY_WEBHOOK_SECRET");
 
 Deno.serve(async (req) => {
+  const authResult = requireWebhookSecret(req, WEBHOOK_SECRET);
+  if (authResult instanceof Response) return authResult;
+
   const { user_id, reading_id } = await req.json();
 
   const supabase = createClient(

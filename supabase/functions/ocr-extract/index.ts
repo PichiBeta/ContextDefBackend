@@ -1,4 +1,5 @@
 import "@supabase/functions-js/edge-runtime.d.ts";
+import { requireUser } from "../_shared/auth.ts";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -121,6 +122,9 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") {
     return json(405, { error: "Method not allowed" });
   }
+
+  const auth = await requireUser(req);
+  if (auth instanceof Response) return auth;
 
   const contentType = req.headers.get("content-type") ?? "";
   if (!contentType.includes("multipart/form-data")) {

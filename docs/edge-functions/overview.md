@@ -31,7 +31,7 @@ Both patterns are implemented as helpers in `functions/_shared/auth.ts` and retu
 
 **1. Client-facing APIs** — `requireUser(req)` extracts the Bearer token, creates a user-scoped Supabase client (RLS applies), and verifies the user exists.
 
-Used by: `create-reading`, `defintion-translation`
+Used by: `create-reading`, `defintion-translation`, `ocr-extract`
 
 ```ts
 import { requireUser } from "../_shared/auth.ts";
@@ -41,9 +41,9 @@ if (auth instanceof Response) return auth;
 const { user, supabase } = auth; // supabase is scoped to the caller's JWT
 ```
 
-**2. DB-triggered webhooks** — `requireWebhookSecret(req, secret)` checks the `x-webhook-secret` header against a Vault secret.
+**2. Backend/DB-triggered webhooks** — `requireWebhookSecret(req, secret)` checks the `x-webhook-secret` header against a Vault secret. All backend-invoked functions share the same secret: `READINGS_DIFFICULTY_WEBHOOK_SECRET` (the name is historical — it predates the other functions that now use it).
 
-Used by: `process-reading`, `calculate-difficulty`
+Used by: `process-reading`, `calculate-difficulty`, `calculate_user_embedding`
 
 ```ts
 import { requireWebhookSecret } from "../_shared/auth.ts";
@@ -54,10 +54,6 @@ if (authResult instanceof Response) return authResult;
 
 All 401 responses use the format `{ ok: false, error: "Unauthorized" }`.
 
-### Functions without auth (known gap)
-
-`ocr-extract` and `calculate_user_embedding` currently have no auth checks. This is flagged as tech debt.
-
 ## Edge Functions Inventory
 
 | Function | Type | Auth | Key Secrets |
@@ -65,9 +61,9 @@ All 401 responses use the format `{ ok: false, error: "Unauthorized" }`.
 | `process-reading` | Webhook (DB trigger) | `x-webhook-secret` header | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `READINGS_DIFFICULTY_WEBHOOK_SECRET`, `HF_API_KEY` |
 | `create-reading` | API (client) | Bearer token → `auth.getUser()` | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` |
 | `calculate-difficulty` | Webhook (DB trigger) | `x-webhook-secret` header | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `READINGS_DIFFICULTY_WEBHOOK_SECRET` |
-| `ocr-extract` | API (client) | None (known gap) | `AZURE_DOC_INTEL_ENDPOINT`, `AZURE_DOC_INTEL_KEY` |
+| `ocr-extract` | API (client) | Bearer token → `auth.getUser()` | `AZURE_DOC_INTEL_ENDPOINT`, `AZURE_DOC_INTEL_KEY` |
 | `defintion-translation` | API (client) | Bearer token → `auth.getUser()` | `ANTHROPIC_API_KEY` |
-| `calculate_user_embedding` | Internal API | None (known gap) | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` |
+| `calculate_user_embedding` | Internal API | `x-webhook-secret` header | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `READINGS_DIFFICULTY_WEBHOOK_SECRET` |
 
 ## Function Naming
 
