@@ -19,7 +19,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 Only `deno.json` contains the versioned specifier. The bare specifier key should be a short, descriptive name (e.g., `"supabase"`, `"anthropic"`, `"wink-tokenizer"`).
 
-**`@supabase/functions-js`** is only needed in functions that use `import "@supabase/functions-js/edge-runtime.d.ts"` for edge runtime type declarations. Do not add it to every function. Currently used by: `calculate-difficulty`, `ocr-extract`.
+**`@supabase/functions-js`** is only needed in functions that use `import "@supabase/functions-js/edge-runtime.d.ts"` for edge runtime type declarations. Do not add it to every function. Currently used by: `ocr-extract`.
 
 ## Auth: Custom Auth (verify_jwt = false)
 
@@ -43,7 +43,7 @@ const { user, supabase } = auth; // supabase is scoped to the caller's JWT
 
 **2. Backend/DB-triggered webhooks** — `requireWebhookSecret(req, secret)` checks the `x-webhook-secret` header against a Vault secret. All backend-invoked functions share the same secret: `READINGS_DIFFICULTY_WEBHOOK_SECRET` (the name is historical — it predates the other functions that now use it).
 
-Used by: `process-reading`, `calculate-difficulty`, `calculate_user_embedding`
+Used by: `process-reading`, `calculate_user_embedding`
 
 ```ts
 import { requireWebhookSecret } from "../_shared/auth.ts";
@@ -60,7 +60,6 @@ All 401 responses use the format `{ ok: false, error: "Unauthorized" }`.
 |---|---|---|---|
 | `process-reading` | Webhook (DB trigger) | `x-webhook-secret` header | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `READINGS_DIFFICULTY_WEBHOOK_SECRET`, `HF_API_KEY` |
 | `create-reading` | API (client) | Bearer token → `auth.getUser()` | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` |
-| `calculate-difficulty` | Webhook (DB trigger) | `x-webhook-secret` header | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `READINGS_DIFFICULTY_WEBHOOK_SECRET` |
 | `ocr-extract` | API (client) | Bearer token → `auth.getUser()` | `AZURE_DOC_INTEL_ENDPOINT`, `AZURE_DOC_INTEL_KEY` |
 | `defintion-translation` | API (client) | Bearer token → `auth.getUser()` | `ANTHROPIC_API_KEY` |
 | `calculate_user_embedding` | Internal API | `x-webhook-secret` header | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `READINGS_DIFFICULTY_WEBHOOK_SECRET` |

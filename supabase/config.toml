@@ -376,12 +376,6 @@ verify_jwt = false
 import_map = "./functions/create-reading/deno.json"
 entrypoint = "./functions/create-reading/index.ts"
 
-[functions.calculate-difficulty]
-enabled = true
-verify_jwt = false
-import_map = "./functions/calculate-difficulty/deno.json"
-entrypoint = "./functions/calculate-difficulty/index.ts"
-
 [functions.ocr-extract]
 enabled = true
 verify_jwt = false

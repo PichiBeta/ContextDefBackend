@@ -1,6 +1,5 @@
 {
   "workspace": [
-    "functions/calculate-difficulty",
     "functions/calculate_user_embedding",
     "functions/create-reading",
     "functions/defintion-translation",

@@ -25,7 +25,6 @@ Client
 - **`profiles`** — User profile. Has `embedding vector(384)` + `num_vectors int` for running-average user embedding. Auto-created by `handle_new_user` trigger on auth signup.
 - **`readings`** — Text readings. Status lifecycle: `uploading → uploaded → processing → processed` (or `failed`). Has `difficulty int`, `embedding vector(384)`. `storage_path` is a GENERATED column (`id::text`). `content_preview varchar(70)` is NOT NULL.
 - **`user_saved_readings`** — Junction table: users ↔ readings library. Has state: `active | pinned | archived`. User column is `user_id`.
-- **`temp_readings`** — Prototype table for testing the difficulty pipeline. Ignore for new features.
 
 ### Key Functions and Triggers
 

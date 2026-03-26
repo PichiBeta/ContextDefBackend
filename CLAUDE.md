@@ -20,7 +20,6 @@ Backend for a language-learning reading platform. Supabase project (database + e
 
 | Issue | Location | Notes |
 |---|---|---|
-| `calculate-difficulty` duplicates logic | `functions/calculate-difficulty/index.ts` | Only used by the `temp_readings` prototype table trigger. Low priority to consolidate. |
 | Hardcoded production URL in trigger | `migrations/*.sql` → `readings_enqueue_difficulty` | `pg_net` triggers require a hardcoded URL. Local dev does NOT fire this trigger against the local function. |
 | Orphaned dashboard secrets | `supabase/.env.example` | `GEMINI_API_KEY` and `OPEN_API_KEY` exist in the dashboard but no function code references them. Investigate before removing. |
-| Vault secrets not in migrations | Dashboard > Vault | `READINGS_DIFFICULTY_WEBHOOK_SECRET` and `TEMP_READINGS_DIFFICULTY_WEBHOOK_SECRET` must be set manually in the Vault — they are not seeded by any migration. |
+| Vault secrets not in migrations | Dashboard > Vault | `READINGS_DIFFICULTY_WEBHOOK_SECRET` must be set manually in the Vault — it is not seeded by any migration. |
