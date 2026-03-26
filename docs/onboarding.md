@@ -97,12 +97,9 @@ All unit tests should pass. Integration tests require a running local stack and 
 
 ## Understanding the Architecture
 
-Read [CLAUDE.md](../CLAUDE.md) in full before making changes. Key sections:
-
-- **Data Flow: Reading Creation** — the most important flow to understand
-- **Edge Functions Inventory** — what each function does and what secrets it needs
-- **Development Conventions** — naming, deno.json requirements, code-first rule
-- **Known Issues / Tech Debt** — things to be aware of before touching certain areas
+- [CLAUDE.md](../CLAUDE.md) — rules, doc references, and known issues
+- [docs/architecture/overview.md](architecture/overview.md) — data flow, database schema, triggers
+- [docs/edge-functions/overview.md](edge-functions/overview.md) — conventions for edge function development
 
 ---
 
@@ -139,11 +136,11 @@ Review `git diff supabase/` and commit the changes.
 
 ### Adding a New Edge Function
 
-1. `supabase functions new <function-name>` — scaffolds `supabase/functions/<function-name>/index.ts` and `deno.json`
-2. Add a `[functions.<function-name>]` section to `supabase/config.toml` with `verify_jwt = false` (or `true` if needed)
-3. Add the function to the `workspace` array in `supabase/deno.json` if it has its own `deno.json`
-4. Document the new function in [CLAUDE.md](../CLAUDE.md) (Edge Functions Inventory table)
-5. Deploy: `supabase functions deploy <function-name>`
+See the full checklist in [docs/edge-functions/overview.md](edge-functions/overview.md#creating-a-new-function). Deploy when ready:
+
+```bash
+supabase functions deploy <function-name>
+```
 
 ---
 
@@ -160,15 +157,6 @@ Review `git diff supabase/` and commit the changes.
 
 ---
 
-## Storage Buckets (Manual Setup)
+## Storage Buckets
 
-Storage buckets are not captured in migrations. If you're doing a clean local setup or setting up a new environment, create the following bucket:
-
-**Bucket name:** `readings`
-- Access: **private** (not public)
-- File size limit: none (or match production)
-- Allowed MIME types: `text/plain`, `application/json`
-
-In local Studio: Storage > New bucket > `readings` > private.
-
-In production: Dashboard > Storage > New bucket (or ask a teammate — it already exists).
+The `readings` storage bucket is created by migration (`20260326000000_create_readings_bucket.sql`) and configured in `config.toml` for local dev. No manual setup needed.
