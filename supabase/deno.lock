@@ -110,7 +110,8 @@
     "members": {
       "functions/calculate-difficulty": {
         "dependencies": [
-          "jsr:@supabase/functions-js@2"
+          "jsr:@supabase/functions-js@2",
+          "jsr:@supabase/supabase-js@2"
         ]
       },
       "functions/calculate_user_embedding": {
@@ -120,12 +121,13 @@
       },
       "functions/create-reading": {
         "dependencies": [
-          "jsr:@supabase/functions-js@2"
+          "jsr:@supabase/supabase-js@2"
         ]
       },
       "functions/defintion-translation": {
         "dependencies": [
-          "npm:@anthropic-ai/sdk@0.39"
+          "jsr:@supabase/supabase-js@2",
+          "npm:@anthropic-ai/sdk@0.39.0"
         ]
       },
       "functions/ocr-extract": {

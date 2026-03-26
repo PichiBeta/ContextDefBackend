@@ -27,32 +27,32 @@ All functions set `verify_jwt = false` in `config.toml`. The project uses a **pu
 
 ### Two auth patterns
 
-**1. Client-facing APIs** — Require `Authorization: Bearer <token>` header, verify the user exists via `supabase.auth.getUser()`.
+Both patterns are implemented as helpers in `functions/_shared/auth.ts` and return a `Response` on failure so callers can return immediately.
+
+**1. Client-facing APIs** — `requireUser(req)` extracts the Bearer token, creates a user-scoped Supabase client (RLS applies), and verifies the user exists.
 
 Used by: `create-reading`, `defintion-translation`
 
 ```ts
-const jwt = parseBearer(req);
-if (!jwt) return jsonResponse({ error: "Missing bearer token" }, 401);
+import { requireUser } from "../_shared/auth.ts";
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY, {
-  global: { headers: { Authorization: `Bearer ${jwt}`, apikey: SUPABASE_PUBLIC_KEY } },
-});
-
-const { data: userData, error: userErr } = await supabase.auth.getUser();
-if (userErr || !userData?.user) return jsonResponse({ error: "Unauthorized" }, 401);
+const auth = await requireUser(req);
+if (auth instanceof Response) return auth;
+const { user, supabase } = auth; // supabase is scoped to the caller's JWT
 ```
 
-**2. DB-triggered webhooks** — Require `x-webhook-secret` header matching a Vault secret.
+**2. DB-triggered webhooks** — `requireWebhookSecret(req, secret)` checks the `x-webhook-secret` header against a Vault secret.
 
 Used by: `process-reading`, `calculate-difficulty`
 
 ```ts
-const secret = req.headers.get("x-webhook-secret");
-if (!secret || secret !== WEBHOOK_SECRET) {
-  return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), { status: 401 });
-}
+import { requireWebhookSecret } from "../_shared/auth.ts";
+
+const authResult = requireWebhookSecret(req, WEBHOOK_SECRET);
+if (authResult instanceof Response) return authResult;
 ```
+
+All 401 responses use the format `{ ok: false, error: "Unauthorized" }`.
 
 ### Functions without auth (known gap)
 
@@ -63,7 +63,7 @@ if (!secret || secret !== WEBHOOK_SECRET) {
 | Function | Type | Auth | Key Secrets |
 |---|---|---|---|
 | `process-reading` | Webhook (DB trigger) | `x-webhook-secret` header | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `READINGS_DIFFICULTY_WEBHOOK_SECRET`, `HF_API_KEY` |
-| `create-reading` | API (client) | Bearer token → `auth.getUser()` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` |
+| `create-reading` | API (client) | Bearer token → `auth.getUser()` | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` |
 | `calculate-difficulty` | Webhook (DB trigger) | `x-webhook-secret` header | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `READINGS_DIFFICULTY_WEBHOOK_SECRET` |
 | `ocr-extract` | API (client) | None (known gap) | `AZURE_DOC_INTEL_ENDPOINT`, `AZURE_DOC_INTEL_KEY` |
 | `defintion-translation` | API (client) | Bearer token → `auth.getUser()` | `ANTHROPIC_API_KEY` |
@@ -87,5 +87,5 @@ if (!secret || secret !== WEBHOOK_SECRET) {
 1. `supabase functions new <name>` — scaffolds `index.ts`, `deno.json`, and auto-appends `[functions.<name>]` to `config.toml`
 2. Set `verify_jwt = false` in `config.toml` (unless you have a specific reason for legacy JWT)
 3. Add the function to the `workspace` array in `supabase/deno.json`
-4. Implement one of the two auth patterns above in your function code
+4. Implement auth using the helpers in `functions/_shared/auth.ts` (see auth patterns above)
 5. Create a doc file: `docs/edge-functions/<name>.md`

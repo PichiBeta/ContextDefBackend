@@ -1,7 +1,9 @@
 # Supabase
 .branches
 .temp
-data/
+data/readings/*
+!data/readings/.gitkeep
+snippets/
 
 # dotenvx
 .env.keys

@@ -1,5 +1,6 @@
 import "@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "supabase";
+import { requireWebhookSecret } from "../_shared/auth.ts";
 
 /*
 v1.0 (updated) - Classic readability: single scalar difficulty score derived
@@ -72,13 +73,8 @@ function computeDifficultyScore(text: string): number {
 Deno.serve(async (req) => {
   try {
     // Authenticate caller is DB trigger
-    const secret = req.headers.get("x-webhook-secret");
-    if (!secret || secret !== WEBHOOK_SECRET) {
-      return new Response(
-        JSON.stringify({ ok: false, error: "Unauthorized" }),
-        { status: 401, headers: { "Content-Type": "application/json" } },
-      );
-    }
+    const authResult = requireWebhookSecret(req, WEBHOOK_SECRET);
+    if (authResult instanceof Response) return authResult;
 
     const { reading_id, storage_path, content_updated_at } = await req.json();
 

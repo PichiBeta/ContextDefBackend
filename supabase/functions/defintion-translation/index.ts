@@ -1,6 +1,6 @@
 import Anthropic from "anthropic";
-import { createClient } from "supabase";
 import { getPrompt } from "./prompts.ts";
+import { requireUser } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -30,34 +30,9 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const authHeader = req.headers.get("Authorization");
-
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: "Authentication required." }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      {
-        global: {
-          headers: { Authorization: authHeader },
-        },
-      },
-    );
-
-    // Validate JWT
-    const { data: userData, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !userData?.user) {
-      return new Response(
-        JSON.stringify({ error: "Invalid authentication token." }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
+    const auth = await requireUser(req);
+    if (auth instanceof Response) return auth;
+    const { supabase } = auth;
 
     const {
       selection,

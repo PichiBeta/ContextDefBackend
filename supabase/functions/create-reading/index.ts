@@ -1,24 +1,8 @@
-import { createClient } from "supabase";
+import { requireUser } from "../_shared/auth.ts";
 
-
- // We explicitly require a Bearer access token and verify it via auth.getUser().
- // All DB + Storage writes run with the caller's JWT so RLS policies apply.
+// All DB + Storage writes run with the caller's JWT so RLS policies apply.
 
 type Visibility = "private" | "unlisted" | "public";
-
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
-// Use whichever env var you actually set in Dashboard -> Edge Functions -> Secrets.
-// Prefer publishable key if that's your project convention.
-const SUPABASE_PUBLIC_KEY =
-  Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ??
-  Deno.env.get("SUPABASE_ANON_KEY") ??
-  "";
-
-if (!SUPABASE_URL || !SUPABASE_PUBLIC_KEY) {
-  // Fail fast with a clear log if secrets are misconfigured.
-  console.error("Missing SUPABASE_URL or SUPABASE_PUBLIC_KEY (publishable/anon) in env");
-  throw new Error("Server misconfigured");
-}
 
 // TODO: tighten in production (echo allowed origin + add Vary: Origin)
 const corsHeaders = {
@@ -40,12 +24,6 @@ function jsonResponse(body: unknown, status = 200, extraHeaders: HeadersInit = {
   });
 }
 
-function parseBearer(req: Request): string | null {
-  const authHeader = req.headers.get("authorization") ?? "";
-  if (!authHeader.startsWith("Bearer ")) return null;
-  const token = authHeader.slice(7).trim();
-  return token.length ? token : null;
-}
 
 Deno.serve(async (req) => {
   // --- CORS preflight ---
@@ -58,29 +36,11 @@ Deno.serve(async (req) => {
       return jsonResponse({ ok: false, error: "Method not allowed" }, 405);
     }
 
-    // --- Require & verify caller JWT (works when legacy verify is OFF) ---
-    const jwt = parseBearer(req);
-    if (!jwt) {
-      return jsonResponse({ ok: false, error: "Missing bearer token" }, 401);
-    }
-
-    // Use caller token so RLS applies. Include apikey as well (recommended).
-    const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY, {
-      global: {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-          apikey: SUPABASE_PUBLIC_KEY,
-        },
-      },
-    });
-
-    const { data: userData, error: userErr } = await supabase.auth.getUser();
-    if (userErr || !userData?.user) {
-      console.error("auth.getUser failed:", userErr);
-      return jsonResponse({ ok: false, error: "Unauthorized" }, 401);
-    }
-
-    const owner_id = userData.user.id;
+    // --- Require & verify caller JWT ---
+    const auth = await requireUser(req);
+    if (auth instanceof Response) return auth;
+    const { user, supabase } = auth;
+    const owner_id = user.id;
 
     // --- Parse payload safely ---
     let payload: unknown;

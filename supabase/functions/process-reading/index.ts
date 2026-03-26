@@ -1,4 +1,5 @@
 import { createClient } from "supabase";
+import { requireWebhookSecret } from "../_shared/auth.ts";
 import { tokenizeReading } from "./tokenize-reading.ts";
 import { calculateDifficulty } from "./calculate-difficulty.ts";
 import { calculateReadingEmbedding } from "./calculate-reading-embedding.ts";
@@ -22,13 +23,8 @@ Deno.serve(async (req) => {
 
   try {
     // 1) Verify caller (DB trigger via pg_net) using shared secret
-    const secret = req.headers.get("x-webhook-secret");
-    if (!secret || secret !== WEBHOOK_SECRET) {
-      return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const authResult = requireWebhookSecret(req, WEBHOOK_SECRET);
+    if (authResult instanceof Response) return authResult;
 
     // 2) Parse payload
     const body = await req.json();
