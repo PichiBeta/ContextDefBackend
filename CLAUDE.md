@@ -4,7 +4,7 @@ Backend for a language-learning reading platform. Supabase project (database + e
 
 ## Rules
 
-- **Code-first**: All schema changes go through `supabase/migrations/`. Never make schema changes directly in the dashboard without immediately pulling them.
+- **Code-first**: All schema changes go through `supabase/migrations/`. Use `supabase migration new <name>` to create migration files. Never make schema changes directly in the dashboard without immediately pulling them.
 - Do **NOT** rename `defintion-translation/` — the typo is the deployed URL slug.
 - Do **NOT** rename `calculate_user_embedding/` — snake_case is the deployed URL slug. New functions use kebab-case.
 - **When completing a task that changes schema or function logic**: write a decision log to `docs/agent-decisions/YYYYMMDD-<slug>.md` and suggest a commit message.
