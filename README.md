@@ -1,53 +1,62 @@
 # ContextDefBackend
 
-## Pretrained Model (BETO)
+Backend for a language-learning reading platform. Users upload text readings; the system tokenizes them, scores difficulty, and computes semantic embeddings for personalized recommendations.
 
-This project uses the pretrained **BETO model**: `dccuchile/bert-base-spanish-wwm-cased` ([Hugging Face link](https://huggingface.co/dccuchile/bert-base-spanish-wwm-cased)).
+## Quick Links
 
-- **License**: CC BY 4.0  
-- **Citation / Disclaimer**:  
-  The license CC BY 4.0 best describes the use of the BETO model itself.  
-  However, the original datasets used to pretrain BETO may have licenses that are **not necessarily compatible with CC BY 4.0**, especially for commercial use. Users should verify the licenses of the original text resources to ensure compliance with their intended use.  
+- [Architecture & Development Guide](CLAUDE.md)
+- [Engineer Onboarding](docs/onboarding.md)
+- [Test Strategy](supabase/tests/README.md)
 
-Please provide proper attribution when using the BETO model in research or commercial projects.
+## Repo Structure
 
-## Before Running Sync
+| Path | Description |
+|---|---|
+| `supabase/` | Supabase project: database migrations, edge functions (Deno/TypeScript) |
+| `supabase/functions/` | Edge functions — one directory per function |
+| `supabase/migrations/` | SQL migration files — source of truth for DB schema |
+| `supabase/config.toml` | Local dev configuration (ports, Deno version, function settings) |
+| `supabase/tests/` | Unit and integration tests |
+| `app/` | FastAPI service (Python) for text chunking |
+| `scripts/sync-supabase.ps1` | Pulls latest schema + function code from the Supabase dashboard |
 
-1. Install Supabase CLI (`supabase --version` should work).
-2. Authenticate once: `supabase login`.
-3. Ensure project targeting is set:
-   - either link this repo: `supabase link --project-ref <your_project_ref>`
-   - or always pass `-ProjectRef <your_project_ref>` to the script.
-4. Run from repo root (`ContextDefBackend`), where `supabase/config.toml` exists.
-5. If using `-WriteLocalEnvFromHost`, export/set required secret env vars on your machine first.
+## First-Time Setup
 
-## Supabase Sync Script
+See [docs/onboarding.md](docs/onboarding.md) for detailed instructions.
 
-This repo includes a one-command sync script for pulling the remote Supabase DB schema and edge functions:
+**Quick start:**
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\sync-supabase.ps1
+```bash
+# 1. Install: Supabase CLI, Docker Desktop, Deno 2.x
+# 2. Authenticate
+supabase login
+supabase link --project-ref irspwhgeyrojqluzgciu
+
+# 3. Set up secrets
+cp supabase/.env.example supabase/.env.local
+# Fill in supabase/.env.local with real values (ask a teammate)
+
+# 4. Start local stack (Docker must be running)
+supabase start
+supabase functions serve   # in a separate terminal
 ```
 
-Optional flags:
+## Syncing From Dashboard
+
+Pull the latest schema and function code from the Supabase dashboard:
 
 ```powershell
-# Use a specific migration name
-powershell -ExecutionPolicy Bypass -File .\scripts\sync-supabase.ps1 -MigrationName 20260306190000_remote_schema
-
-# Target a specific project ref
-powershell -ExecutionPolicy Bypass -File .\scripts\sync-supabase.ps1 -ProjectRef your_project_ref
-
-# Run only one side of the sync
-powershell -ExecutionPolicy Bypass -File .\scripts\sync-supabase.ps1 -SkipDbPull
-powershell -ExecutionPolicy Bypass -File .\scripts\sync-supabase.ps1 -SkipFunctionsDownload
-
-# Generate a local secrets template from remote edge secret names + vault names found in migrations
 powershell -ExecutionPolicy Bypass -File .\scripts\sync-supabase.ps1 -SyncSecretsTemplate
-
-# Build supabase/.env.local from host environment variables for discovered secret names
-powershell -ExecutionPolicy Bypass -File .\scripts\sync-supabase.ps1 -WriteLocalEnvFromHost
 ```
 
-Note: Supabase only returns secret names/digests via CLI, not plaintext values.  
-`-WriteLocalEnvFromHost` copies values from your machine environment variables when available.
+The script will warn if any deployed function is missing configuration in `config.toml`. Review `git diff supabase/` before committing.
+
+## Running Tests
+
+```bash
+# Unit tests — no Docker required
+cd supabase && deno test tests/unit/ --allow-read
+
+# Integration tests — requires supabase start + supabase functions serve
+cd supabase && deno test tests/integration/ --allow-net --allow-env
+```

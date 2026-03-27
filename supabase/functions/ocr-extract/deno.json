@@ -1,7 +1,6 @@
 {
   "imports": {
     "@supabase/functions-js": "jsr:@supabase/functions-js@^2",
-    "supabase": "jsr:@supabase/supabase-js@2",
-    "scribe": "npm:scribe.js-ocr/scribe.js"
+    "supabase": "jsr:@supabase/supabase-js@2"
   }
 }

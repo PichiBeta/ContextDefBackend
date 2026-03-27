@@ -1680,8 +1680,7 @@ CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXEC
   as permissive
   for delete
   to authenticated
-using (((bucket_id = 'readings'::text) AND (name ~ '^[0-9a-fA-F-]{36}(\..*)?;
-::text) AND (EXISTS ( SELECT 1
+using (((bucket_id = 'readings'::text) AND (name ~ '^[0-9a-fA-F-]{36}(\..*){0,1}'::text) AND (EXISTS ( SELECT 1
    FROM public.readings r
   WHERE ((r.id = ("substring"(objects.name, '^([0-9a-fA-F-]{36})'::text))::uuid) AND (r.is_deleted = false) AND (r.owner_id = auth.uid()))))));
 
@@ -1692,8 +1691,7 @@ using (((bucket_id = 'readings'::text) AND (name ~ '^[0-9a-fA-F-]{36}(\..*)?;
   as permissive
   for insert
   to authenticated
-with check (((bucket_id = 'readings'::text) AND (name ~ '^[0-9a-fA-F-]{36}(\..*)?;
-::text) AND (EXISTS ( SELECT 1
+with check (((bucket_id = 'readings'::text) AND (name ~ '^[0-9a-fA-F-]{36}(\..*){0,1}'::text) AND (EXISTS ( SELECT 1
    FROM public.readings r
   WHERE ((r.id = ("substring"(objects.name, '^([0-9a-fA-F-]{36})'::text))::uuid) AND (r.is_deleted = false) AND (r.owner_id = auth.uid()) AND (r.status = 'uploading'::public.reading_status))))));
 
@@ -1704,8 +1702,7 @@ with check (((bucket_id = 'readings'::text) AND (name ~ '^[0-9a-fA-F-]{36}(\..*)
   as permissive
   for select
   to authenticated
-using (((bucket_id = 'readings'::text) AND (name ~ '^[0-9a-fA-F-]{36}(\..*)?;
-::text) AND (EXISTS ( SELECT 1
+using (((bucket_id = 'readings'::text) AND (name ~ '^[0-9a-fA-F-]{36}(\..*){0,1}'::text) AND (EXISTS ( SELECT 1
    FROM public.readings r
   WHERE ((r.id = ("substring"(objects.name, '^([0-9a-fA-F-]{36})'::text))::uuid) AND (r.is_deleted = false) AND ((r.visibility = 'public'::public.reading_visibility) OR (r.owner_id = auth.uid())))))));
 

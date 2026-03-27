@@ -1,8 +1,12 @@
 # Supabase
 .branches
 .temp
+data/readings/*
+!data/readings/.gitkeep
+snippets/
 
 # dotenvx
 .env.keys
 .env.local
 .env.*.local
+
