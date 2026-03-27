@@ -9,6 +9,10 @@ Backend for a language-learning reading platform. Supabase project (database + e
 - Do **NOT** rename `calculate_user_embedding/` — snake_case is the deployed URL slug. New functions use kebab-case.
 - **When completing a task that changes schema or function logic**: write a decision log to `docs/agent-decisions/YYYYMMDD-<slug>.md` and suggest a commit message.
 
+## Skills
+
+- **Before writing, reviewing, or optimizing SQL, migrations, or schema designs**: read `.agents/skills/supabase-postgres-best-practices/AGENTS.md` and apply the relevant guidelines.
+
 ## Docs
 
 - **Before modifying the readings pipeline or database schema**: see `docs/architecture/overview.md`.
