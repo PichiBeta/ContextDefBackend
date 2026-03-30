@@ -22,8 +22,11 @@ jobs:
         with:
           version: latest
 
+      - name: Link Supabase project
+        run: supabase link --project-ref $SUPABASE_PROJECT_REF
+
       - name: Apply database migrations
-        run: supabase db push --project-ref $SUPABASE_PROJECT_REF
+        run: supabase db push
 
       - name: Deploy edge functions
         run: supabase functions deploy --project-ref $SUPABASE_PROJECT_REF
