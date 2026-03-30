@@ -103,6 +103,46 @@ All unit tests should pass. Integration tests require a running local stack and 
 
 ---
 
+## CD Pipeline
+
+Merging a PR into `main` automatically:
+1. Applies any new migrations to the production database (`supabase db push`)
+2. Deploys all edge functions (`supabase functions deploy`)
+
+The pipeline runs via GitHub Actions (`.github/workflows/deploy.yml`).
+
+### Required GitHub Secrets
+
+A repo admin must add these under **GitHub → Settings → Secrets and variables → Actions**:
+
+| Secret | Value |
+|---|---|
+| `SUPABASE_ACCESS_TOKEN` | Personal access token — supabase.com → Account → Access Tokens → Generate new token |
+| `SUPABASE_PROJECT_REF` | `irspwhgeyrojqluzgciu` |
+
+These only need to be set once per repo. They are not per-developer.
+
+### Before Merging to Main
+
+**Keep your local migrations in sync with remote.** If anyone has applied schema changes outside the code-first workflow (e.g. directly in the dashboard), your local migrations directory will be behind remote and `db push` in the pipeline will fail.
+
+Before opening a PR, run:
+
+```bash
+supabase db pull
+```
+
+If it generates a new migration file, commit it in your PR. If no changes are detected, you're good.
+
+### CD Pipeline Pitfalls
+
+| Problem | Cause | Fix |
+|---|---|---|
+| `db push` fails with "remote migration not found in local" | A migration was applied on remote without a local file | Run `supabase db pull`, commit the resulting file |
+| Pipeline skips but no error | No changes to `main` triggered the workflow | Check the Actions tab — only push events to `main` trigger it |
+
+---
+
 ## Common Workflows
 
 ### Making a Schema Change
