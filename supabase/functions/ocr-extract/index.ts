@@ -51,7 +51,12 @@ async function pollAzure(operationUrl: string) {
 
 function normalizeParagraphs(paragraphs: { content: string }[]) {
   return paragraphs
-    .map((p) => p.content.replace(/\s+/g, " ").trim())
+    .map((p) =>
+      p.content
+        .replace(/-\s+/g, "")      // fix OCR hyphenation artifacts
+        .replace(/\s+/g, " ")      // collapse remaining whitespace
+        .trim()
+    )
     .filter((p) => p.length > 0)
     .join("\n\n");
 }

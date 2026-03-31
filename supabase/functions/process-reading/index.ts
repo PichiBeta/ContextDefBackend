@@ -18,6 +18,43 @@ const WEBHOOK_SECRET = Deno.env.get("READINGS_DIFFICULTY_WEBHOOK_SECRET");
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
+async function updateUserEmbedding(
+  supabaseClient: ReturnType<typeof createClient>,
+  owner_id: string,
+  readingEmbedding: number[],
+): Promise<void> {
+  const { data: user, error: userError } = await supabaseClient
+    .from("profiles")
+    .select("embedding, num_vectors")
+    .eq("id", owner_id)
+    .single();
+
+  if (userError || !user) throw new Error(`User profile not found for owner_id=${owner_id}`);
+
+  const baseVectors = user.num_vectors ?? 0;
+  const newNumVectors = baseVectors + 1;
+  let newEmbedding: number[];
+
+  if (baseVectors === 0) {
+    newEmbedding = readingEmbedding;
+  } else {
+    const { data: avgData, error: avgError } = await supabaseClient.rpc("compute_new_embedding", {
+      old_embedding: user.embedding,
+      new_embedding: readingEmbedding,
+      num_vectors: baseVectors,
+    });
+    if (avgError) throw avgError;
+    newEmbedding = avgData;
+  }
+
+  const { error: updateError } = await supabaseClient
+    .from("profiles")
+    .update({ embedding: newEmbedding, num_vectors: newNumVectors })
+    .eq("id", owner_id);
+
+  if (updateError) throw updateError;
+}
+
 Deno.serve(async (req) => {
   let reading_id: string | null = null;
 
@@ -101,7 +138,7 @@ Deno.serve(async (req) => {
       })
       .eq("id", reading_id)
       .eq("content_updated_at", content_updated_at)
-      .select("id")
+      .select("id, owner_id")
       .maybeSingle();
 
     if (updErr) throw updErr;
@@ -116,6 +153,25 @@ Deno.serve(async (req) => {
           status: 409,
           headers: { "Content-Type": "application/json" },
         },
+      );
+    }
+
+    // STEP 8: Best-effort user embedding update
+    // Reading is already marked processed; failure here is logged but does not
+    // affect the reading's status or the HTTP response.
+    const owner_id = (updated as { id: string; owner_id: string | null }).owner_id ?? null;
+    if (owner_id) {
+      try {
+        await updateUserEmbedding(supabase, owner_id, embedding);
+      } catch (embErr) {
+        console.error(
+          `[process-reading] updateUserEmbedding failed for owner_id=${owner_id}:`,
+          (embErr as Error)?.message ?? embErr,
+        );
+      }
+    } else {
+      console.warn(
+        `[process-reading] reading ${reading_id} has no owner_id — skipping user embedding update`,
       );
     }
 
