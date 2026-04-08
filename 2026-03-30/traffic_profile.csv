@@ -1,0 +1,19 @@
+schemaname,table_name,blocks_read,write_tuples,blocks_write,activity_ratio
+auth,users,20,433,108.25,5.4:1 (Write-Heavy)
+public,readings,10,180,51.4285714285714,5.1:1 (Write-Heavy)
+auth,refresh_tokens,12,1001,42.5957446808511,3.5:1 (Write-Heavy)
+auth,sessions,9,505,33.6666666666667,3.7:1 (Write-Heavy)
+storage,objects,5,162,34.7142857142857,6.9:1 (Write-Heavy)
+auth,mfa_amr_claims,2,241,20.0833333333333,10.0:1 (Write-Heavy)
+public,words_lookup_cache,4,81,5.52272727272727,1.4:1 (Write-Heavy)
+auth,one_time_tokens,8,11,-0,Read-Only
+auth,identities,7,11,-0,Read-Only
+auth,schema_migrations,6,69,0.958333333333333,1:6.3 (Read-Heavy)
+realtime,schema_migrations,4,68,1.04615384615385,0.3:1 (Write-Heavy)
+public,user_saved_readings,5,47,-0,Read-Only
+storage,migrations,2,79,2.7719298245614,1.4:1 (Write-Heavy)
+public,profiles,2,8,2,1.0:1 (Write-Heavy)
+storage,buckets,2,4,-0,Read-Only
+vault,secrets,2,5,-0,Read-Only
+public,words_saved,2,10,-0,Read-Only
+supabase_migrations,schema_migrations,1,6,-0,Read-Only

@@ -1,0 +1,10 @@
+type,name,bloat,waste
+index,public.readings::idx_readings_embedding,3.0,16 kB
+index,public.readings::idx_readings_owner_created_at,0.0,16 kB
+index,public.readings::readings_pkey,0.0,16 kB
+table,public.readings,2.0,8192 bytes
+table,public.words_lookup_cache,1.5,8192 bytes
+index,public.readings::idx_readings_feed_created_at,0.0,8192 bytes
+index,public.words_lookup_cache::words_lookup_cache_reading_id_native_language_idx,1.0,0 bytes
+index,public.words_lookup_cache::words_lookup_cache_unique_span,1.0,0 bytes
+index,public.words_lookup_cache::words_lookup_cache_pkey,1.0,0 bytes

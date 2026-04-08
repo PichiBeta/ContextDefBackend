@@ -1,0 +1,18 @@
+name,size,percent_used,index_scans,seq_scans,unused
+public.idx_readings_embedding,24 kB,0%,0,0,t
+public.user_saved_readings_pkey,16 kB,100%,70,0,f
+public.idx_user_saved_readings_user_accessed_at,16 kB,100%,1393,0,f
+public.idx_user_saved_readings_user_state,16 kB,0%,0,0,t
+public.idx_user_saved_readings_user_saved_at,16 kB,0%,0,0,t
+public.words_saved_pkey,16 kB,100%,24,0,f
+public.words_lookup_cache_pkey,16 kB,100%,20,0,f
+public.readings_pkey,16 kB,100%,790,0,f
+public.words_lookup_cache_unique_span,16 kB,100%,57,0,f
+public.idx_profiles_embedding,16 kB,0%,0,0,t
+public.idx_readings_owner_created_at,16 kB,0%,0,0,t
+public.idx_readings_feed_created_at,16 kB,100%,11,0,f
+public.words_saved_unique_user_span,16 kB,100%,185,0,f
+public.profiles_pkey,16 kB,100%,372,0,f
+public.profiles_username_key,16 kB,0%,0,0,t
+public.words_lookup_cache_reading_id_native_language_idx,16 kB,100%,210,0,f
+public.idx_user_saved_readings_reading,16 kB,100%,32,0,f

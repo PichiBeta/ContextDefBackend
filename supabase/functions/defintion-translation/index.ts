@@ -1,5 +1,6 @@
 import Anthropic from "anthropic";
 import { getPrompt } from "./prompts.ts";
+import { fetchWiktionary } from "./wiktionary.ts";
 import { requireUser } from "../_shared/auth.ts";
 
 const corsHeaders = {
@@ -18,9 +19,37 @@ interface RequestBody {
   selection_end: number;
 }
 
-interface DefinitionResponse {
+interface LLMResult {
   definition: string[];  // 2–3 bullet points in the source language
   translation: string;   // Brief translation in the target language
+}
+
+interface DefinitionResponse extends LLMResult {
+  part_of_speech: string | null;
+  examples: Array<{ text: string; translation?: string }>;
+}
+
+async function callLLM(
+  anthropic: Anthropic,
+  prompt: string,
+): Promise<LLMResult> {
+  const message = await anthropic.messages.create({
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 512,
+    messages: [{ role: "user", content: prompt }],
+  });
+
+  const rawText = message.content
+    .filter((block) => block.type === "text")
+    .map((block) => (block as { type: "text"; text: string }).text)
+    .join("");
+
+  const cleaned = rawText
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```\s*$/i, "")
+    .trim();
+
+  return JSON.parse(cleaned) as LLMResult;
 }
 
 Deno.serve(async (req: Request) => {
@@ -69,7 +98,7 @@ Deno.serve(async (req: Request) => {
       .eq("reading_id", reading_id)
       .eq("selection_start", selection_start)
       .eq("selection_end", selection_end)
-      .select("definition, translation")
+      .select("definition, translation, part_of_speech, examples")
       .maybeSingle();
 
     if (cacheError) {
@@ -81,6 +110,8 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({
           definition: cachedRow.definition,
           translation: cachedRow.translation,
+          part_of_speech: cachedRow.part_of_speech ?? null,
+          examples: JSON.parse(cachedRow.examples ?? "[]"),
         }),
         {
           status: 200,
@@ -89,31 +120,32 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // Cache miss — fetch LLM and Wiktionary in parallel.
     const anthropic = new Anthropic({
       apiKey: Deno.env.get("ANTHROPIC_API_KEY")!,
     });
 
     const prompt = getPrompt(language_code, selection, context, language);
 
-    const message = await anthropic.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 512,
-      messages: [{ role: "user", content: prompt }],
-    });
+    const [llmSettled, wiktSettled] = await Promise.allSettled([
+      callLLM(anthropic, prompt),
+      fetchWiktionary(selection, language_code),
+    ]);
 
-    // Extract the text content from the response
-    const rawText = message.content
-      .filter((block) => block.type === "text")
-      .map((block) => (block as { type: "text"; text: string }).text)
-      .join("");
+    // LLM is the critical path — if it failed, throw
+    if (llmSettled.status === "rejected") {
+      throw llmSettled.reason;
+    }
 
-    // Parse the JSON Claude returns
-    const cleaned = rawText
-      .replace(/^```(?:json)?\s*/i, "")
-      .replace(/\s*```\s*$/i, "")
-      .trim();
+    const parsed: LLMResult = llmSettled.value;
+    const wikt = wiktSettled.status === "fulfilled" ? wiktSettled.value : null;
 
-    const parsed: DefinitionResponse = JSON.parse(cleaned);
+    const response: DefinitionResponse = {
+      definition: parsed.definition,
+      translation: parsed.translation,
+      part_of_speech: wikt?.partOfSpeech ?? null,
+      examples: wikt?.examples ?? [],
+    };
 
     const { error: insertError } = await supabase
       .from("words_lookup_cache")
@@ -121,6 +153,8 @@ Deno.serve(async (req: Request) => {
         selection,
         definition: parsed.definition,
         translation: parsed.translation,
+        part_of_speech: response.part_of_speech,
+        examples: JSON.stringify(response.examples),
         reading_id,
         selection_start,
         selection_end,
@@ -142,7 +176,7 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    return new Response(JSON.stringify(parsed), {
+    return new Response(JSON.stringify(response), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
