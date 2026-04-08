@@ -1,0 +1,6 @@
+name,table_size,index_size,total_size,estimated_row_count,seq_scans
+public.readings,48 kB,72 kB,120 kB,7,7264
+public.words_lookup_cache,64 kB,48 kB,112 kB,71,71
+public.user_saved_readings,8192 bytes,80 kB,88 kB,7,30
+public.profiles,16 kB,48 kB,64 kB,5,72
+public.words_saved,16 kB,32 kB,48 kB,6,18
