@@ -27,6 +27,7 @@ function jsonResponse(body: unknown, status = 200, extraHeaders: HeadersInit = {
 
 Deno.serve(async (req) => {
   // --- CORS preflight ---
+  // test, for github pipeline
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
