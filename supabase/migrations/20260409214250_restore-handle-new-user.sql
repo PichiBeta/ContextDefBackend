@@ -3,9 +3,9 @@
 -- The frontend now sends username, full_name, native_language, and target_language as options.data
 -- in the signUp() call, so all fields are available in raw_user_meta_data at account creation time.
 --
--- Also tightens the profiles schema: username, native_language, and target_language are now NOT NULL
--- since they are always provided at sign-up. Run this only after ensuring no existing rows have NULLs
--- in these columns (delete any skeleton/test profiles first if needed).
+-- Also tightens the profiles schema: full_name, username, native_language, and target_language are
+-- now NOT NULL since they are always provided at sign-up. Run this only after ensuring no existing
+-- rows have NULLs in these columns (delete any skeleton/test profiles first if needed).
 
 CREATE OR REPLACE FUNCTION public.handle_new_user() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
@@ -26,6 +26,7 @@ end;
 $$;
 
 ALTER TABLE public.profiles
+    ALTER COLUMN full_name SET NOT NULL,
     ALTER COLUMN username SET NOT NULL,
     ALTER COLUMN native_language SET NOT NULL,
     ALTER COLUMN target_language SET NOT NULL;
