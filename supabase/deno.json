@@ -4,6 +4,7 @@
     "functions/create-reading",
     "functions/defintion-translation",
     "functions/ocr-extract",
+    "functions/personal-feed",
     "functions/process-reading"
   ],
   "imports": {
