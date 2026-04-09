@@ -22,7 +22,7 @@ Client
 
 ### Tables
 
-- **`profiles`** — User profile. Has `embedding vector(384)` + `num_vectors int` for running-average user embedding. Auto-created by `handle_new_user` trigger on auth signup.
+- **`profiles`** — User profile. Has `embedding vector(384)` + `num_vectors int` for running-average user embedding. Auto-created as a skeleton row by `handle_new_user` trigger on auth signup (id, full_name, avatar_url only). Username and language preferences are set via UPDATE after OTP email verification.
 - **`readings`** — Text readings. Status lifecycle: `uploading → uploaded → processing → processed` (or `failed`). Has `difficulty int`, `embedding vector(384)`. `storage_path` is a GENERATED column (`id::text`). `content_preview varchar(70)` is NOT NULL.
 - **`user_saved_readings`** — Junction table: users ↔ readings library. Has state: `active | pinned | archived`. User column is `user_id`.
 

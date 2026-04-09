@@ -27,3 +27,4 @@ Backend for a language-learning reading platform. Supabase project (database + e
 | Hardcoded production URL in trigger | `migrations/*.sql` → `readings_enqueue_difficulty` | `pg_net` triggers require a hardcoded URL. Local dev does NOT fire this trigger against the local function. |
 | Orphaned dashboard secrets | `supabase/.env.example` | `GEMINI_API_KEY` and `OPEN_API_KEY` exist in the dashboard but no function code references them. Investigate before removing. |
 | Vault secrets not in migrations | Dashboard > Vault | `READINGS_DIFFICULTY_WEBHOOK_SECRET` must be set manually in the Vault — it is not seeded by any migration. |
+| config.toml not synced with production | `supabase/config.toml` | Local config has never been reconciled with dashboard settings. Do NOT use `supabase config push` until a full manual reconciliation is done. No `config pull` exists in the CLI. |

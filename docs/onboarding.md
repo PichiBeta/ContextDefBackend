@@ -63,15 +63,7 @@ Studio URL:  http://127.0.0.1:54323
 
 Open Studio at `http://127.0.0.1:54323` to browse the local DB.
 
-## Step 4: Apply Migrations
-
-```bash
-supabase db push
-```
-
-This applies all files in `supabase/migrations/` to your local DB. The local DB starts empty, so this is required before running integration tests.
-
-## Step 5: Serve Edge Functions Locally
+## Step 4: Serve Edge Functions Locally
 
 In a second terminal:
 
@@ -81,7 +73,7 @@ supabase functions serve
 
 Functions are available at `http://127.0.0.1:54321/functions/v1/<function-name>`. They reload automatically when you edit a file.
 
-## Step 6: Run Tests
+## Step 5: Run Tests
 
 ```bash
 # Unit tests — no Docker required
@@ -150,9 +142,9 @@ If it generates a new migration file, commit it in your PR. If no changes are de
 1. Make the change in local Studio or write SQL directly
 2. `supabase db diff --schema public` — preview what changed
 3. `supabase migration new <descriptive_name>` — create the migration file
-4. `supabase db push` — apply to local DB
+4. `supabase db push --local` — apply new migration to the already-running local DB
 5. Commit the migration file — **never skip this step**
-6. When ready: `supabase db push --linked` — apply to production
+6. When ready: `supabase db push` — apply to production (targets linked remote by default)
 
 ### Deploying a Function Change
 
