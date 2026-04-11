@@ -39,11 +39,11 @@ a user could move their file to another user's folder path (the pre-update check
 would pass, but the post-update row would be owned by a different folder).
 Both clauses contain the same uid check.
 
-### 5. `CREATE OR REPLACE POLICY` for idempotency
+### 5. `DROP POLICY IF EXISTS` + `CREATE POLICY` for idempotency
 
 Migrations in this project can be replayed (e.g. `supabase db reset` in local
-dev). Using `CREATE OR REPLACE POLICY` (available in PG 15, which Supabase uses)
-makes the policy statements safe to re-run without a preceding `DROP`.
+dev). PostgreSQL does not support `CREATE OR REPLACE POLICY`, so each policy is
+preceded by `DROP POLICY IF EXISTS` to make the migration safe to re-run.
 
 ### 6. `image/*` wildcard and 10 MB limit
 

@@ -14,21 +14,18 @@ VALUES (
 )
 ON CONFLICT (id) DO NOTHING;
 
--- 2. RLS (no-op if already enabled; storage.objects has RLS on by default in Supabase)
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+-- 2. Policies
 
--- 3. Policies
-
--- Any authenticated user can read any avatar
-CREATE OR REPLACE POLICY "avatars_select"
+DROP POLICY IF EXISTS "avatars_select" ON storage.objects;
+CREATE POLICY "avatars_select"
   ON storage.objects
   AS PERMISSIVE
   FOR SELECT
   TO authenticated
   USING (bucket_id = 'avatars');
 
--- Authenticated users may only INSERT into their own folder
-CREATE OR REPLACE POLICY "avatars_insert"
+DROP POLICY IF EXISTS "avatars_insert" ON storage.objects;
+CREATE POLICY "avatars_insert"
   ON storage.objects
   AS PERMISSIVE
   FOR INSERT
@@ -38,9 +35,9 @@ CREATE OR REPLACE POLICY "avatars_insert"
     AND (storage.foldername(name))[1] = auth.uid()::text
   );
 
--- Authenticated users may only UPDATE their own avatar.
 -- WITH CHECK mirrors USING to prevent renaming the file into another user's folder.
-CREATE OR REPLACE POLICY "avatars_update"
+DROP POLICY IF EXISTS "avatars_update" ON storage.objects;
+CREATE POLICY "avatars_update"
   ON storage.objects
   AS PERMISSIVE
   FOR UPDATE
@@ -54,8 +51,8 @@ CREATE OR REPLACE POLICY "avatars_update"
     AND (storage.foldername(name))[1] = auth.uid()::text
   );
 
--- Authenticated users may only DELETE their own avatar
-CREATE OR REPLACE POLICY "avatars_delete"
+DROP POLICY IF EXISTS "avatars_delete" ON storage.objects;
+CREATE POLICY "avatars_delete"
   ON storage.objects
   AS PERMISSIVE
   FOR DELETE
