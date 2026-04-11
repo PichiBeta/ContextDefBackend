@@ -5,7 +5,8 @@
     "functions/defintion-translation",
     "functions/ocr-extract",
     "functions/personal-feed",
-    "functions/process-reading"
+    "functions/process-reading",
+    "functions/delete-reading-storage"
   ],
   "imports": {
     "@std/assert": "jsr:@std/assert@^1.0.19",
