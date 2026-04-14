@@ -3,7 +3,9 @@
 -- inside the same function body. Renaming the parameter to p_reading_id removes
 -- the ambiguity without changing the function's behaviour or signature.
 
-CREATE OR REPLACE FUNCTION public.soft_delete_reading(p_reading_id uuid)
+DROP FUNCTION IF EXISTS public.soft_delete_reading(uuid);
+
+CREATE FUNCTION public.soft_delete_reading(p_reading_id uuid)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY INVOKER
